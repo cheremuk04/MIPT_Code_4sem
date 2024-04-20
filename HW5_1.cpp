@@ -1,32 +1,43 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
 #include <thread>
-#include <numeric>
+#include <algorithm>
 
 using namespace std;
 
-void FindLargestSum(const vector<int>& v, int& result) {
-    vector<int> copyV = v;
-    //сортируем по убываню элементы копии вектора
-    sort(copyV.rbegin(), copyV.rend());
-    //функция accumulate используется для вычисления суммы всех элементов в диапазоне контейнера или массива
-    result = accumulate(copyV.begin(), copyV.begin() + 3, 0);
+void MaxSum(const vector<int>& v, int& result, int start, int end) {
+    vector<int> max3 = {0, 0, 0};
+
+    for (int i = start; i < end; ++i) {
+        if (v[i] > max3[0]) {
+            max3[2] = max3[1];
+            max3[1] = max3[0];
+            max3[0] = v[i];
+        } else if (v[i] > max3[1]) {
+            max3[2] = max3[1];
+            max3[1] = v[i];
+        } else if (v[i] > max3[2]) {
+            max3[2] = v[i];
+        }
+    }
+
+    result = max3[0] + max3[1] + max3[2];
 }
 
 int main() {
-    const int size = 10;
+    const int size = 10000;
     vector<int> v(size);
+
     generate(v.begin(), v.end(), []() { return rand() % 100; });
 
-    int sum = 0;
-    thread t(FindLargestSum, ref(v), ref(sum));
-    t.join();
-    for (int num: v){
-        cout << num << ' ';
-    }
-    cout << endl;
-    cout << sum << endl;
+    int result1, result2;
+    thread t1(MaxSum, ref(v), ref(result1), 0, size / 2);
+    thread t2(MaxSum, ref(v), ref(result2), size / 2, size);
+
+    t1.join();
+    t2.join();
+
+    cout << result1 + result2 << endl;
 
     return 0;
 }
